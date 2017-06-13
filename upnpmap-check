@@ -1,0 +1,39 @@
+#!/usr/bin/env python2
+import argparse
+import miniupnpc
+import sys
+
+parser = argparse.ArgumentParser(description='Check if a port is mapped via UPnP.')
+parser.add_argument('-p', '--port', required=True, metavar='port', dest='port', type=int, help='The port number to check')
+parser.add_argument('-i', '--intport', metavar='intport', dest='intport', type=int, default=0, help='Optionally specify the internal port')
+parser.add_argument('-a', '--address', metavar='address', dest='address', default='', help='An optional IP to check for a mapping against')
+parser.add_argument('-r', '--protocol', metavar='protocol', dest='protocol', default='', help='If set, ensure either TCP or UDP')
+parser.add_argument('-d', '--discoverdelay', metavar='delay-in-ms', dest='discoverdelay', default=200, help='If unset, default to 200')
+args = parser.parse_args()
+
+u = miniupnpc.UPnP()
+u.discoverdelay = args.discoverdelay
+u.discover()
+u.selectigd()
+
+exists = False
+i = 0
+while True:
+  p = u.getgenericportmapping(i)
+  i += 1
+  if p == None:
+    break
+  
+  port, protocol, (address, intport), desc, x, y, z = p
+
+  if str(args.port) == str(port):
+    if args.intport <= 0 or args.intport == intport:
+      if not args.protocol or args.protocol == protocol:
+        if not args.address or args.address == address:
+          exists = True
+          break
+
+message = "exists" if exists else "does not exist"
+code = 0 if exists else 1
+print message
+sys.exit(code)

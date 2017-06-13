@@ -1,10 +1,22 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
+import argparse
 import miniupnpc
-u = miniupnpc.UPnP()
-u.discoverdelay=200;u.discover();u.selectigd()
-
 import sys
-if len(sys.argv)==3: extPortNo,intPortNo = int(sys.argv[1]),int(sys.argv[2])
-elif len(sys.argv)==2: extPortNo = intPortNo = int(sys.argv[1])
-else: sys.stderr.write("Syntax: upnp-add-port external-port [internal-port]\n"),sys.exit(1)
-u.addportmapping(extPortNo,'TCP',u.lanaddr,intPortNo,'upnp-add-port '+str(extPortNo),'')
+import socket
+
+parser = argparse.ArgumentParser(description='Add a port mapping via UPnP.')
+parser.add_argument('-p', '--port', required=True, metavar='port', dest='port', type=int, help='The port number to map')
+parser.add_argument('-i', '--intport', metavar='intport', dest='intport', type=int, default=0, help='Optionally specify the internal port')
+parser.add_argument('-a', '--address', metavar='address', dest='address', default='', help='Optionally specify IP address to map')
+parser.add_argument('-r', '--protocol', metavar='protocol', dest='protocol', default='TCP', help='TCP or UDP, defaults to TCP')
+parser.add_argument('-d', '--discoverdelay', metavar='delay-in-ms', dest='discoverdelay', default=200, help='If unset, default to 200')
+args = parser.parse_args()
+
+intport = args.intport if args.intport > 0 else args.port
+addr = args.address if args.address else socket.gethostbyname(socket.gethostname())
+
+u = miniupnpc.UPnP()
+u.discoverdelay = args.discoverdelay
+u.discover()
+u.selectigd()
+u.addportmapping(intport, args.protocol, u.lanaddr, args.intport, 'upnp-add-port '+str(args.port), '')

@@ -1,11 +1,22 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
+import argparse
 import miniupnpc
-u = miniupnpc.UPnP()
-u.discoverdelay=200;u.discover();u.selectigd()
 
-p=1;i=0
-while p:
-  p = u.getgenericportmapping(i) ; i+=1
-  if p:
-    port,protocol,(toAddr,toPort),desc,x,y,z = p
-    print protocol+":"+str(port),"->",toAddr+":"+str(toPort)+"\t"+desc
+parser = argparse.ArgumentParser(description='List all current mappings via UPnP.')
+parser.add_argument('-d', '--discoverdelay', metavar='delay-in-ms', dest='discoverdelay', default=200, help='If unset, default to 200')
+args = parser.parse_args()
+
+u = miniupnpc.UPnP()
+u.discoverdelay = args.discoverdelay
+u.discover()
+u.selectigd()
+
+i = 0
+while True:
+  p = u.getgenericportmapping(i)
+  i += 1
+  if p == None:
+    break
+  
+  port, protocol, (address, intport), desc, x, y, z = p
+  print protocol + ":" + str(port), "->" , address + ":" + str(intport) + "\t" + desc
