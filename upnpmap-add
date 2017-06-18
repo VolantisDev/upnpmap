@@ -19,4 +19,4 @@ u = miniupnpc.UPnP()
 u.discoverdelay = args.discoverdelay
 u.discover()
 u.selectigd()
-u.addportmapping(intport, args.protocol, u.lanaddr, args.intport, 'upnp-add-port '+str(args.port), '')
+u.addportmapping(intport, args.protocol, u.lanaddr, args.port, 'upnp-add-port '+str(args.port), '')
